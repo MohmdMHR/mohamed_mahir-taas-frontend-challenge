@@ -44,6 +44,12 @@
     <br>
     <div class="table-container" v-if="showCommits">
       <h1 class="title">Commits In Repo</h1>
+      <div class="select">
+        <select name="slct" id="slct" @change="selectChange">
+          <option selected disabled>branches</option>
+          <option v-for="(branch, b) in branches" v-bind:key="b" >{{ branch.name }}</option>
+        </select>
+      </div>
       <table class="table is-bordered is-striped is-hoverable is-fullwidth">
         <thead>
         <tr>
@@ -76,7 +82,8 @@ export default {
     isLoading: false,
     arrowCounter: 0,
     showCommits: false,
-    commits: []
+    commits: [],
+    branches: []
   }),
   props: {
     repos: {
@@ -89,17 +96,32 @@ export default {
     }
   },
   methods: {
+    selectChange(event){
+      // console.log('select', value)
+      this.getCommitsByBranch(event.target.value)
+    },
     setResult(result) {
       this.repoName = result;
       this.isOpen = false;
-      this.getCommits(result)
+      this.getCommits(result, '')
     },
-    async getCommits(repo){
-      let api = 'https://api.github.com/repos/'+this.user+'/'+repo+'/commits'
+    getCommitsByBranch(branch){
+      this.getCommits(this.repoName, branch)
+    },
+    async getBranches(repo){
+      let api = 'https://api.github.com/repos/'+this.user+'/'+repo+'/branches'
+      await axios.get(api).then((resp)=>{
+        console.log('branches', resp);
+        this.branches = resp.data
+      })
+    },
+    async getCommits(repo, branch){
+      let api = 'https://api.github.com/repos/'+this.user+'/'+repo+'/commits?sha='+branch
       await axios.get(api).then((resp)=>{
         this.commits = resp.data.map(item=>item.commit)
         this.showCommits = true
       })
+      this.getBranches(repo)
     },
     onChange() {
       this.$emit("input", this.repoName);
@@ -147,6 +169,59 @@ body {
 .table th {
   padding: 20px !important;
 }
+.select {
+  margin-inline: auto;
+  margin-block: 15px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  outline: 0;
+  box-shadow: none;
+  border: 0 !important;
+  background: #2c3e50;
+  background-image: none;
+}
+/* Remove IE arrow */
+select::-ms-expand {
+  display: none;
+}
+/* Custom Select */
+.select {
+  position: relative;
+  display: flex;
+  width: 20em;
+  height: 3em;
+  line-height: 3;
+  background: #2c3e50;
+  overflow: hidden;
+  border-radius: .25em;
+}
+select {
+  flex: 1;
+  padding: 0 .5em;
+  color: #fff;
+  cursor: pointer;
+}
+/* Arrow */
+//.select::after {
+//  content: '\25BC';
+//  position: absolute;
+//  top: 0;
+//  right: 0;
+//  padding: 0 1em;
+//  background: #34495e;
+//  cursor: pointer;
+//  pointer-events: none;
+//  -webkit-transition: .25s all ease;
+//  -o-transition: .25s all ease;
+//  transition: .25s all ease;
+//}
+/* Transition */
+.select:hover::after {
+  color: #f39c12;
+}
+
 .autocomplete-results{
   width: 500px;
   margin-inline: auto;
