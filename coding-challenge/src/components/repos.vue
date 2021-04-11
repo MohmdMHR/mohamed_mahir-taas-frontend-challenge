@@ -204,24 +204,44 @@ select {
   cursor: pointer;
 }
 /* Arrow */
-//.select::after {
-//  content: '\25BC';
-//  position: absolute;
-//  top: 0;
-//  right: 0;
-//  padding: 0 1em;
-//  background: #34495e;
-//  cursor: pointer;
-//  pointer-events: none;
-//  -webkit-transition: .25s all ease;
-//  -o-transition: .25s all ease;
-//  transition: .25s all ease;
-//}
+.select::after {
+  content: '\25BC';
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0 1em;
+  background: #34495e;
+  cursor: pointer;
+  pointer-events: none;
+  -webkit-transition: .25s all ease;
+  -o-transition: .25s all ease;
+  transition: .25s all ease;
+}
 /* Transition */
 .select:hover::after {
   color: #f39c12;
 }
-
+.select:not(.is-multiple):not(.is-loading)::after {
+  border-color: #3273dc;
+  right: 0;
+  z-index: 4;
+}
+.select:not(.is-multiple):not(.is-loading)::after, .navbar-link:not(.is-arrowless)::after {
+  border: unset;
+  border-radius: unset;
+  border-right: unset;
+  border-top: unset;
+  content: "▼";
+  //display: unset;
+  height: unset;
+  //margin-top: unset;
+  //pointer-events: unset;
+  //position: unset;
+  top: 20%;
+  transform: unset;
+  transform-origin: unset;
+  width: auto;
+}
 .autocomplete-results{
   width: 500px;
   margin-inline: auto;
