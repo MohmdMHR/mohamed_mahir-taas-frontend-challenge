@@ -1,0 +1,193 @@
+<template>
+  <div class="mb-6" style="width: 1155px;">
+    <section class="hero is-medium is-primary is-bold mb-6">
+      <div class="hero-body">
+        <div class="container">
+          <h1 class="title">Get GitHub Repositories By Name</h1>
+          <div class="actions">
+            <input class="input" v-model="repoName" type="text" @input="onChange">
+            <ul id="autocomplete-results" v-show="isOpen" class="autocomplete-results">
+              <li v-for="(result, i) in results.map(res=>res.name)" :key="i" @click="setResult(result)" class="autocomplete-result" :class="{ 'is-active': i === arrowCounter }">
+                {{ result }}
+              </li>
+            </ul>
+            <!--            <button class="button" @click="logrepo">Search</button>-->
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="container">
+      <div class="table-container">
+        <table class="table is-bordered is-striped is-hoverable is-fullwidth">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>URL</th>
+            <th>Language</th>
+            <th>Login</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="repo in filteredRepos" v-bind:key="repo.id">
+            <td>{{ repo.id }}</td>
+            <td>{{ repo.name }}</td>
+            <td>{{ repo.html_url }}</td>
+            <td>{{ repo.language }}</td>
+            <td>{{ repo.owner.login }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <br>
+    <br>
+    <div class="table-container" v-if="showCommits">
+      <h1 class="title">Commits In Repo</h1>
+      <table class="table is-bordered is-striped is-hoverable is-fullwidth">
+        <thead>
+        <tr>
+          <th>Author</th>
+          <th>Email</th>
+          <th>Message</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(commit, c) in commits" v-bind:key="c">
+          <td>{{ commit.author.name }}</td>
+          <td>{{ commit.author.email }}</td>
+          <td>{{ commit.message }}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios'
+export default {
+  name: "repos",
+  data: () => ({
+    repoName: '',
+    isOpen: false,
+    results: [],
+    search: "",
+    isLoading: false,
+    arrowCounter: 0,
+    showCommits: false,
+    commits: []
+  }),
+  props: {
+    repos: {
+      type: [Array, Object],
+      default: () => ([])
+    },
+    user: {
+      type: String,
+      default:  ''
+    }
+  },
+  methods: {
+    setResult(result) {
+      this.repoName = result;
+      this.isOpen = false;
+      this.getCommits(result)
+    },
+    async getCommits(repo){
+      let api = 'https://api.github.com/repos/'+this.user+'/'+repo+'/commits'
+      await axios.get(api).then((resp)=>{
+        this.commits = resp.data.map(item=>item.commit)
+        this.showCommits = true
+      })
+    },
+    onChange() {
+      this.$emit("input", this.repoName);
+      this.filterResults();
+      this.isOpen = true;
+    },
+    filterResults() {
+      this.results = this.repos.filter(item => {
+        return item.name.toLowerCase().includes(this.repoName.toLowerCase());
+      });
+    },
+    handleClickOutside(evt) {
+      if (!this.$el.contains(evt.target)) {
+        this.isOpen = false;
+        this.arrowCounter = -1;
+      }
+    },
+  },
+  mounted() {
+    document.addEventListener("click", this.handleClickOutside);
+  },
+  destroyed() {
+    document.removeEventListener("click", this.handleClickOutside);
+  },
+  computed: {
+    filteredRepos() {
+      if (!this.repoName.length) {
+        return this.repos
+      } else {
+        return this.repos.filter(repo =>
+            repo.name.includes(this.repoName)
+        )
+      }
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+body {
+  font: 15px/1.8 "Poppins", sans-serif !important;
+}
+
+.table td,
+.table th {
+  padding: 20px !important;
+}
+.autocomplete-results{
+  width: 500px;
+  margin-inline: auto;
+  max-height: 250px;
+  height: auto;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  background: darkcyan;
+  border-radius: 10px;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  .autocomplete-result{
+    &.is-active{
+      background: coral;
+    }
+    &:hover{
+      background: coral;
+    }
+  }
+}
+.actions {
+  .input {
+    max-width: 500px;
+    margin-bottom: 10px;
+    width: 100%;
+    height: 30px;
+    border-radius: 5px;
+    //margin-inline-end: 25px;
+  }
+
+  .button {
+    height: 30px;
+    max-width: 120px;
+    width: 100%;
+    border-radius: 5px;
+    background: lightblue;
+    color: darkblue;
+  }
+
+}
+</style>
