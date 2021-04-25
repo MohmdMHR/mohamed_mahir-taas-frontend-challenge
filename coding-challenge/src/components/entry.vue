@@ -9,7 +9,8 @@
 </template>
 
 <script>
-import axios from 'axios'
+import { githubService } from "../modules/githubSevice/service/githubService.ts";
+
 export default {
 name: "entry",
   data: () => ({
@@ -25,8 +26,7 @@ name: "entry",
   },
   methods: {
     async searchUsers(){
-      let api = 'https://api.github.com/users/'+this.user+'/repos'
-      await axios.get(api).then((resp)=>{
+      await githubService.getUsers(this.user).then((resp)=>{
         if(resp.status === 200){
           this.repos = resp.data;
           const data = {
@@ -39,7 +39,6 @@ name: "entry",
           this.error = true;
           this.errorMsg = 'Something went wrong, please try again'
         }
-
       })
     }
   }

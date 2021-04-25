@@ -71,7 +71,8 @@
 </template>
 
 <script>
-import axios from 'axios'
+import { githubService } from "../modules/githubSevice/service/githubService.ts";
+
 export default {
   name: "repos",
   data: () => ({
@@ -97,7 +98,6 @@ export default {
   },
   methods: {
     selectChange(event){
-      // console.log('select', value)
       this.getCommitsByBranch(event.target.value)
     },
     setResult(result) {
@@ -109,15 +109,21 @@ export default {
       this.getCommits(this.repoName, branch)
     },
     async getBranches(repo){
-      let api = 'https://api.github.com/repos/'+this.user+'/'+repo+'/branches'
-      await axios.get(api).then((resp)=>{
-        console.log('branches', resp);
+      const payload = {
+        user: this.user,
+        repo: repo
+      }
+      await githubService.getRepos(payload).then((resp)=>{
         this.branches = resp.data
       })
     },
     async getCommits(repo, branch){
-      let api = 'https://api.github.com/repos/'+this.user+'/'+repo+'/commits?sha='+branch
-      await axios.get(api).then((resp)=>{
+      const payload = {
+        user: this.user,
+        repo: repo,
+        branch: branch
+      }
+      await githubService.getCommits(payload).then((resp)=>{
         this.commits = resp.data.map(item=>item.commit)
         this.showCommits = true
       })
